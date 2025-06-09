@@ -33,6 +33,7 @@ module.exports.getUser = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server." });
   }
+  return null;
 };
 
 module.exports.createUser = async (req, res) => {
@@ -49,4 +50,5 @@ module.exports.createUser = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server." });
   }
+  return null;
 };

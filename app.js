@@ -1,6 +1,8 @@
 const express = require("express");
+const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require("./utils/errors");
 const app = express();
 const mongoose = require("mongoose");
+
 const { PORT = 3001 } = process.env;
 const usersRouter = require("./routes/users");
 const itemsRouter = require("./routes/clothingItems");
@@ -16,16 +18,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/", (req, res) => {
-  res.send("Hola Mundo");
-});
-
 app.use("/users", usersRouter);
 app.use("/items", itemsRouter);
 
 // Ruta para recursos inexistentes
 app.use((req, res) => {
-  res.status(404).send({ message: "Requested resource not found" });
+  res.status(NOT_FOUND).send({ message: "Requested resource not found" });
 });
 
 app.listen(PORT, () => {

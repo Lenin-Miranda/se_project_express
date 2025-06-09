@@ -34,6 +34,7 @@ module.exports.createItem = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error occurred on the server" });
   }
+  return null;
 };
 
 module.exports.deleteItem = async (req, res) => {
@@ -43,7 +44,11 @@ module.exports.deleteItem = async (req, res) => {
       .orFail(() => {
         throw new mongoose.Error.DocumentNotFoundError(null);
       });
-    res.send({ message: "Item deleted successfully" });
+
+    return res.send({
+      message: "Item deleted successfully",
+      deletedItem: item, // o solo item._id
+    });
   } catch (err) {
     console.error(err);
     if (err.name === "CastError") {
@@ -52,7 +57,7 @@ module.exports.deleteItem = async (req, res) => {
     if (err.name === "DocumentNotFoundError") {
       return res.status(NOT_FOUND).send({ message: "Item not found" });
     }
-    res
+    return res
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server" });
   }
@@ -83,6 +88,7 @@ module.exports.likeItem = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server" });
   }
+  return null;
 };
 
 module.exports.dislikeItem = async (req, res) => {
@@ -110,4 +116,5 @@ module.exports.dislikeItem = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server" });
   }
+  return null;
 };
