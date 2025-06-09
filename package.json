@@ -9,7 +9,7 @@
     "dev": "nodemon app.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Lenin Miranda",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^8.57.1",
