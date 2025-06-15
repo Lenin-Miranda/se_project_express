@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 const clothingItems = require("../models/clothingItem");
-const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
+const {
+  BAD_REQUEST,
+  NOT_FOUND,
+  SERVER_ERROR,
+  FORBIDDEN_ERROR,
+} = require("../utils/errors");
+const clothingItem = require("../models/clothingItem");
 
 module.exports.getItem = async (req, res) => {
   try {
@@ -17,6 +23,19 @@ module.exports.getItem = async (req, res) => {
 module.exports.createItem = async (req, res) => {
   try {
     const { name, weather, imageUrl } = req.body;
+
+    // Validar que todos los campos requeridos estén presentes
+    if (!name || !weather || !imageUrl) {
+      return res
+        .status(BAD_REQUEST)
+        .send({ message: "Missing required fields" });
+    }
+
+    // Validar que weather sea uno de los valores permitidos
+    if (!["hot", "warm", "cold"].includes(weather)) {
+      return res.status(BAD_REQUEST).send({ message: "Invalid weather value" });
+    }
+
     const owner = req.user._id;
     const newItem = await clothingItems.create({
       name,
@@ -40,14 +59,21 @@ module.exports.createItem = async (req, res) => {
 module.exports.deleteItem = async (req, res) => {
   try {
     const item = await clothingItems
-      .findByIdAndDelete(req.params.itemId)
+      .findByIdAndDelete(req.params.Id)
       .orFail(() => {
         throw new mongoose.Error.DocumentNotFoundError(null);
       });
+    if (item.owner.toString() !== req.user._id) {
+      return res
+        .status(FORBIDDEN_ERROR)
+        .send({ message: "You are not allowed to delete this item" });
+    }
+
+    await item.deleteOne();
 
     return res.send({
       message: "Item deleted successfully",
-      deletedItem: item, // o solo item._id
+      deletedItem: item,
     });
   } catch (err) {
     console.error(err);
@@ -65,25 +91,28 @@ module.exports.deleteItem = async (req, res) => {
 
 module.exports.likeItem = async (req, res) => {
   try {
-    const updatedItem = await clothingItems
-      .findByIdAndUpdate(
-        req.params.itemId,
-        { $addToSet: { likes: req.user._id } },
-        { new: true }
-      )
-      .orFail(() => {
-        throw new mongoose.Error.DocumentNotFoundError(null);
-      });
+    // Verificar si el ID es válido
+    if (!mongoose.Types.ObjectId.isValid(req.params.Id)) {
+      return res
+        .status(BAD_REQUEST)
+        .send({ message: "Invalid item ID format" });
+    }
+
+    // Verificar si el documento existe
+    const item = await clothingItems.findById(req.params.Id);
+    if (!item) {
+      return res.status(NOT_FOUND).send({ message: "Item not found" });
+    }
+
+    const updatedItem = await clothingItems.findByIdAndUpdate(
+      req.params.Id,
+      { $addToSet: { likes: req.user._id } },
+      { new: true }
+    );
 
     res.send(updatedItem);
   } catch (err) {
     console.error(err);
-    if (err.name === "CastError") {
-      return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
-    }
-    if (err.name === "DocumentNotFoundError") {
-      return res.status(NOT_FOUND).send({ message: "Item not found" });
-    }
     res
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server" });
@@ -93,25 +122,28 @@ module.exports.likeItem = async (req, res) => {
 
 module.exports.dislikeItem = async (req, res) => {
   try {
-    const updatedItem = await clothingItems
-      .findByIdAndUpdate(
-        req.params.itemId,
-        { $pull: { likes: req.user._id } },
-        { new: true }
-      )
-      .orFail(() => {
-        throw new mongoose.Error.DocumentNotFoundError(null);
-      });
+    // Verificar si el ID es válido
+    if (!mongoose.Types.ObjectId.isValid(req.params.Id)) {
+      return res
+        .status(BAD_REQUEST)
+        .send({ message: "Invalid item ID format" });
+    }
+
+    // Verificar si el documento existe
+    const item = await clothingItems.findById(req.params.Id);
+    if (!item) {
+      return res.status(NOT_FOUND).send({ message: "Item not found" });
+    }
+
+    const updatedItem = await clothingItems.findByIdAndUpdate(
+      req.params.Id,
+      { $pull: { likes: req.user._id } },
+      { new: true }
+    );
 
     res.send(updatedItem);
   } catch (err) {
     console.error(err);
-    if (err.name === "CastError") {
-      return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
-    }
-    if (err.name === "DocumentNotFoundError") {
-      return res.status(NOT_FOUND).send({ message: "Item not found" });
-    }
     res
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server" });
