@@ -1,13 +1,13 @@
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const User = require("../models/user");
 const {
   BAD_REQUEST,
   NOT_FOUND,
   SERVER_ERROR,
-  UNAUTHORIZED_ERROR,
   CONFLICT_ERROR,
 } = require("../utils/errors");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+
 const { JWT_SECRET } = require("../utils/config");
 
 module.exports.getUsers = async (req, res) => {
@@ -20,6 +20,7 @@ module.exports.getUsers = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server." });
   }
+  return null;
 };
 
 module.exports.getCurrentUser = async (req, res) => {
@@ -88,6 +89,7 @@ module.exports.createUser = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server." });
   }
+  return null;
 };
 
 module.exports.login = async (req, res) => {
@@ -132,6 +134,7 @@ module.exports.login = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server." });
   }
+  return null;
 };
 
 module.exports.updateUser = async (req, res) => {
@@ -173,4 +176,5 @@ module.exports.updateUser = async (req, res) => {
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server." });
   }
+  return null;
 };

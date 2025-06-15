@@ -6,7 +6,6 @@ const {
   SERVER_ERROR,
   FORBIDDEN_ERROR,
 } = require("../utils/errors");
-const clothingItem = require("../models/clothingItem");
 
 module.exports.getItem = async (req, res) => {
   try {
