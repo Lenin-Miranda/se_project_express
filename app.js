@@ -1,7 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+
+// Variables o constantes globales
 const { NOT_FOUND } = require("./utils/errors");
+
+// App e imports locales
 const app = express();
 const { PORT = 3001 } = process.env;
 const usersRouter = require("./routes/users");
@@ -18,6 +22,7 @@ const corsOptions = {
 
 app.use(express.json());
 app.use(cors(corsOptions));
+
 app.use((req, res, next) => {
   req.user = {
     _id: "5d8b8592978f8bd833ca8133",
@@ -32,7 +37,7 @@ app.post("/signup", createUser);
 app.post("/signin", login);
 
 // Middleware de autenticación
-app.use(auth);
+// app.use(auth);
 
 // Rutas protegidas
 app.use("/users", usersRouter);

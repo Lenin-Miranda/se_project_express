@@ -57,11 +57,9 @@ module.exports.createItem = async (req, res) => {
 
 module.exports.deleteItem = async (req, res) => {
   try {
-    const item = await clothingItems
-      .findByIdAndDelete(req.params.Id)
-      .orFail(() => {
-        throw new mongoose.Error.DocumentNotFoundError(null);
-      });
+    const item = await clothingItems.findById(req.params.Id).orFail(() => {
+      throw new mongoose.Error.DocumentNotFoundError(null);
+    });
     if (item.owner.toString() !== req.user._id) {
       return res
         .status(FORBIDDEN_ERROR)
