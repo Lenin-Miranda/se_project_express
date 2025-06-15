@@ -10,7 +10,7 @@ const app = express();
 const { PORT = 3001 } = process.env;
 const usersRouter = require("./routes/users");
 const itemsRouter = require("./routes/clothingItems");
-// const { auth } = require("./middleware/auth");
+const { auth } = require("./middleware/auth");
 const { createUser, login } = require("./controllers/users");
 // Configuración de CORS
 const corsOptions = {
@@ -37,7 +37,7 @@ app.post("/signup", createUser);
 app.post("/signin", login);
 
 // Middleware de autenticación
-// app.use(auth);
+app.use(auth);
 
 // Rutas protegidas
 app.use("/users", usersRouter);
