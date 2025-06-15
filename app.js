@@ -8,7 +8,6 @@ const usersRouter = require("./routes/users");
 const itemsRouter = require("./routes/clothingItems");
 const { auth } = require("./middleware/auth");
 const { createUser, login } = require("./controllers/users");
-
 // Configuración de CORS
 const corsOptions = {
   origin: ["http://localhost:3000", "http://localhost:3001"],
@@ -19,6 +18,12 @@ const corsOptions = {
 
 app.use(express.json());
 app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  req.user = {
+    _id: "5d8b8592978f8bd833ca8133",
+  };
+  next();
+});
 
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 
