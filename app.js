@@ -23,21 +23,11 @@ const corsOptions = {
 app.use(express.json());
 app.use(cors(corsOptions));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: "5d8b8592978f8bd833ca8133",
-  };
-  next();
-});
-
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 
 // Rutas públicas SIN auth
 app.post("/signup", createUser);
 app.post("/signin", login);
-
-// Middleware de autenticación
-app.use(auth);
 
 // Rutas protegidas
 app.use("/users", usersRouter);

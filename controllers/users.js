@@ -6,22 +6,10 @@ const {
   NOT_FOUND,
   SERVER_ERROR,
   CONFLICT_ERROR,
+  UNAUTHORIZED_ERROR,
 } = require("../utils/errors");
 
 const { JWT_SECRET } = require("../utils/config");
-
-module.exports.getUsers = async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.send(users);
-  } catch (err) {
-    console.error(err);
-    res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server." });
-  }
-  return null;
-};
 
 module.exports.getCurrentUser = async (req, res) => {
   try {
@@ -85,7 +73,7 @@ module.exports.createUser = async (req, res) => {
     if (err.code === 11000) {
       return res.status(BAD_REQUEST).send({ message: "User already exists" });
     }
-    res
+    return res
       .status(SERVER_ERROR)
       .send({ message: "An error has occurred on the server." });
   }
@@ -106,14 +94,14 @@ module.exports.login = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res
-        .status(BAD_REQUEST)
+        .status(UNAUTHORIZED_ERROR)
         .send({ message: "Incorrect email or password" });
     }
 
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
       return res
-        .status(BAD_REQUEST)
+        .status(UNAUTHORIZED_ERROR)
         .send({ message: "Incorrect email or password" });
     }
 
