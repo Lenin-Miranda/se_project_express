@@ -1,38 +1,29 @@
 const mongoose = require("mongoose");
 const clothingItems = require("../models/clothingItem");
-const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  SERVER_ERROR,
-  FORBIDDEN_ERROR,
-} = require("../utils/errors");
 
-module.exports.getItem = async (req, res) => {
+const { BadRequestError, NotFoundError } = require("../utils/errors");
+
+const { ForbiddenError } = require("../utils/errors");
+
+module.exports.getItem = async (req, res, next) => {
   try {
     const items = await clothingItems.find({});
     res.send(items);
   } catch (err) {
-    console.error(err);
-    res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server" });
+    next(err); // deja que el middleware lo maneje
   }
 };
 
-module.exports.createItem = async (req, res) => {
+module.exports.createItem = async (req, res, next) => {
   try {
     const { name, weather, imageUrl } = req.body;
 
-    // Validar que todos los campos requeridos estén presentes
     if (!name || !weather || !imageUrl) {
-      return res
-        .status(BAD_REQUEST)
-        .send({ message: "Missing required fields" });
+      throw new BadRequestError("Missing required fields");
     }
 
-    // Validar que weather sea uno de los valores permitidos
     if (!["hot", "warm", "cold"].includes(weather)) {
-      return res.status(BAD_REQUEST).send({ message: "Invalid weather value" });
+      throw new BadRequestError("Invalid weather value");
     }
 
     const owner = req.user._id;
@@ -42,63 +33,50 @@ module.exports.createItem = async (req, res) => {
       imageUrl,
       owner,
     });
+
     res.status(201).send(newItem);
   } catch (err) {
-    console.error(err);
     if (err.name === "ValidationError") {
-      return res.status(BAD_REQUEST).send({ message: "Invalid item data" });
+      return next(new BadRequestError("Invalid item data"));
     }
-    res
-      .status(SERVER_ERROR)
-      .send({ message: "An error occurred on the server" });
+    next(err);
   }
-  return null;
 };
 
-module.exports.deleteItem = async (req, res) => {
+module.exports.deleteItem = async (req, res, next) => {
   try {
-    const item = await clothingItems.findById(req.params.Id).orFail(() => {
-      throw new mongoose.Error.DocumentNotFoundError(null);
-    });
+    const item = await clothingItems.findById(req.params.Id).orFail();
+
     if (item.owner.toString() !== req.user._id) {
-      return res
-        .status(FORBIDDEN_ERROR)
-        .send({ message: "You are not allowed to delete this item" });
+      throw new ForbiddenError("You are not allowed to delete this item");
     }
 
     await item.deleteOne();
 
-    return res.send({
+    res.send({
       message: "Item deleted successfully",
       deletedItem: item,
     });
   } catch (err) {
-    console.error(err);
     if (err.name === "CastError") {
-      return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      return next(new BadRequestError("Invalid item ID"));
     }
     if (err.name === "DocumentNotFoundError") {
-      return res.status(NOT_FOUND).send({ message: "Item not found" });
+      return next(new NotFoundError("Item not found"));
     }
-    return res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server" });
+    next(err);
   }
 };
 
-module.exports.likeItem = async (req, res) => {
+module.exports.likeItem = async (req, res, next) => {
   try {
-    // Verificar si el ID es válido
     if (!mongoose.Types.ObjectId.isValid(req.params.Id)) {
-      return res
-        .status(BAD_REQUEST)
-        .send({ message: "Invalid item ID format" });
+      throw new BadRequestError("Invalid item ID format");
     }
 
-    // Verificar si el documento existe
     const item = await clothingItems.findById(req.params.Id);
     if (!item) {
-      return res.status(NOT_FOUND).send({ message: "Item not found" });
+      throw new NotFoundError("Item not found");
     }
 
     const updatedItem = await clothingItems.findByIdAndUpdate(
@@ -109,27 +87,19 @@ module.exports.likeItem = async (req, res) => {
 
     res.send(updatedItem);
   } catch (err) {
-    console.error(err);
-    res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server" });
+    next(err);
   }
-  return null;
 };
 
-module.exports.dislikeItem = async (req, res) => {
+module.exports.dislikeItem = async (req, res, next) => {
   try {
-    // Verificar si el ID es válido
     if (!mongoose.Types.ObjectId.isValid(req.params.Id)) {
-      return res
-        .status(BAD_REQUEST)
-        .send({ message: "Invalid item ID format" });
+      throw new BadRequestError("Invalid item ID format");
     }
 
-    // Verificar si el documento existe
     const item = await clothingItems.findById(req.params.Id);
     if (!item) {
-      return res.status(NOT_FOUND).send({ message: "Item not found" });
+      throw new NotFoundError("Item not found");
     }
 
     const updatedItem = await clothingItems.findByIdAndUpdate(
@@ -140,10 +110,6 @@ module.exports.dislikeItem = async (req, res) => {
 
     res.send(updatedItem);
   } catch (err) {
-    console.error(err);
-    res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server" });
+    next(err);
   }
-  return null;
 };

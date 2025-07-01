@@ -11,6 +11,10 @@ const { PORT = 3001 } = process.env;
 const usersRouter = require("./routes/users");
 const itemsRouter = require("./routes/clothingItems");
 const { createUser, login } = require("./controllers/users");
+const errorHandler = require("./middleware/error-handler");
+const { errors } = require("celebrate");
+const { requestLogger, errorLogger } = require("./middleware/logger");
+
 // Configuración de CORS
 const corsOptions = {
   origin: ["http://localhost:3000", "http://localhost:3001"],
@@ -37,6 +41,15 @@ app.use((req, res) => {
   res.status(NOT_FOUND).send({ message: "Requested resource not found" });
 });
 
+app.use(requestLogger);
+
+app.use(errorLogger);
+// Middleware de errores de celebrate
+app.use(errors());
+
+// Middleware de manejo de errores
+app.use(errorHandler);
+//Iniciar Servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

@@ -8,49 +8,39 @@ const {
   CONFLICT_ERROR,
   UNAUTHORIZED_ERROR,
 } = require("../utils/errors");
+const { BadRequestError, NotFoundError } = require("../utils/errors");
+const { ConflictError } = require("../utils/errors");
+const { ServerError } = require("../utils/errors");
+const { UnathorizedError } = require("../utils/errors");
 
 const { JWT_SECRET } = require("../utils/config");
 
-module.exports.getCurrentUser = async (req, res) => {
+module.exports.getCurrentUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).orFail(() => {
-      const error = new Error("User not found");
-      error.statusCode = NOT_FOUND;
-      throw error;
-    });
+    const user = await User.findById(req.user._id).orFail();
     res.send(user);
   } catch (err) {
-    console.error(err);
-    if (err.name === "DocumentNotFoundError" || err.statusCode === NOT_FOUND) {
-      return res.status(NOT_FOUND).send({ message: "User not found" });
+    if (err.name === "DocumentNotFoundError") {
+      next(new NotFoundError("User not found"));
+    } else if (err.name === "CastError") {
+      next(new BadRequestError("Invalid user ID"));
+    } else {
+      next(err);
     }
-    if (err.name === "CastError") {
-      return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-    }
-    res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server." });
   }
-  return null;
 };
 
-module.exports.createUser = async (req, res) => {
+module.exports.createUser = async (req, res, next) => {
   try {
     const { name, avatar, email, password } = req.body;
 
-    // Validar que todos los campos requeridos estén presentes
     if (!name || !avatar || !email || !password) {
-      return res
-        .status(BAD_REQUEST)
-        .send({ message: "Missing required fields" });
+      throw new BadRequestError("Missing required fields");
     }
 
-    // Primero verificamos si el usuario ya existe
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(CONFLICT_ERROR)
-        .send({ message: "User already exists" });
+      throw new ConflictError("User already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -66,72 +56,56 @@ module.exports.createUser = async (req, res) => {
 
     res.status(201).send(userToSend);
   } catch (err) {
-    console.error(err);
     if (err.name === "ValidationError") {
-      return res.status(BAD_REQUEST).send({ message: "Invalid data" });
+      next(new BadRequestError("Invalid data"));
+    } else if (err.code === 11000) {
+      next(new ConflictError("User already exists"));
+    } else {
+      next(err);
     }
-    if (err.code === 11000) {
-      return res.status(BAD_REQUEST).send({ message: "User already exists" });
-    }
-    return res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server." });
   }
-  return null;
 };
 
-module.exports.login = async (req, res) => {
+module.exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  // Validar que ambos campos estén presentes
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Email and password are required" });
+    return next(new BadRequestError("Email and password are required"));
   }
 
   try {
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      return res
-        .status(UNAUTHORIZED_ERROR)
-        .send({ message: "Incorrect email or password" });
+      throw new UnathorizedError("Incorrect email or password");
     }
 
     const matched = await bcrypt.compare(password, user.password);
     if (!matched) {
-      return res
-        .status(UNAUTHORIZED_ERROR)
-        .send({ message: "Incorrect email or password" });
+      throw new UnathorizedError("Incorrect email or password");
     }
 
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
 
-    // Enviar el token y los datos del usuario en el formato esperado
     res.status(200).send({
       token,
       email: user.email,
       name: user.name,
     });
   } catch (err) {
-    console.error("Error en login:", err);
     if (err.name === "ValidationError") {
-      return res.status(BAD_REQUEST).send({ message: "Invalid data" });
+      next(new BadRequestError("Invalid data"));
+    } else {
+      next(err);
     }
-    res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server." });
   }
-  return null;
 };
 
-module.exports.updateUser = async (req, res) => {
+module.exports.updateUser = async (req, res, next) => {
   try {
     const { name, avatar } = req.body;
 
-    // Verificar que al menos uno de los campos esté presente
     if (!name && !avatar) {
-      return res.status(BAD_REQUEST).send({ message: "No fields to update" });
+      throw new BadRequestError("No fields to update");
     }
 
     const updateData = {};
@@ -144,10 +118,9 @@ module.exports.updateUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(NOT_FOUND).send({ message: "User not found" });
+      throw new NotFoundError("User not found");
     }
 
-    // Generar nuevo token
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
 
     res.status(200).send({
@@ -156,13 +129,10 @@ module.exports.updateUser = async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error(err);
     if (err.name === "ValidationError") {
-      return res.status(BAD_REQUEST).send({ message: "Invalid data" });
+      next(new BadRequestError("Invalid data"));
+    } else {
+      next(err);
     }
-    res
-      .status(SERVER_ERROR)
-      .send({ message: "An error has occurred on the server." });
   }
-  return null;
 };
