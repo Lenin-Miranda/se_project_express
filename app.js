@@ -21,6 +21,7 @@ const corsOptions = {
     "http://localhost:3000",
     "http://localhost:3001",
     "https://wtwrle.ignorelist.com",
+    "https://www.wtwrle.ignorelist.com",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
