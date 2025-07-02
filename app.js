@@ -17,7 +17,11 @@ const { requestLogger, errorLogger } = require("./middleware/logger");
 
 // Configuración de CORS
 const corsOptions = {
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://wtwrle.ignorelist.com",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
