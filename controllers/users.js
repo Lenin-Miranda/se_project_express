@@ -79,6 +79,7 @@ module.exports.login = async (req, res, next) => {
       email: user.email,
       name: user.name,
     });
+    return null;
   } catch (err) {
     if (err.name === "ValidationError") {
       return next(new BadRequestError("Invalid data"));
