@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const { errors } = require("celebrate");
 
 // Variables o constantes globales
 const { NOT_FOUND } = require("./utils/errors");
@@ -12,7 +13,6 @@ const usersRouter = require("./routes/users");
 const itemsRouter = require("./routes/clothingItems");
 const { createUser, login } = require("./controllers/users");
 const errorHandler = require("./middleware/error-handler");
-const { errors } = require("celebrate");
 const { requestLogger, errorLogger } = require("./middleware/logger");
 
 // Configuración de CORS
@@ -61,7 +61,7 @@ app.use(errors());
 
 // Middleware de manejo de errores
 app.use(errorHandler);
-//Iniciar Servidor
+// Iniciar Servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

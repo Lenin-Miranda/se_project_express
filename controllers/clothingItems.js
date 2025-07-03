@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const clothingItems = require("../models/clothingItem");
 
-const { BadRequestError, NotFoundError } = require("../utils/errors");
-
-const { ForbiddenError } = require("../utils/errors");
+const { BadRequestError } = require("../utils/errors");
+const { NotFoundError } = require("../utils/NotFoundError");
+const { ForbiddenError } = require("../utils/ForbiddenError");
 
 module.exports.getItem = async (req, res, next) => {
   try {
@@ -35,11 +35,12 @@ module.exports.createItem = async (req, res, next) => {
     });
 
     res.status(201).send(newItem);
+    return null;
   } catch (err) {
     if (err.name === "ValidationError") {
       return next(new BadRequestError("Invalid item data"));
     }
-    next(err);
+    return next(err);
   }
 };
 
@@ -57,6 +58,7 @@ module.exports.deleteItem = async (req, res, next) => {
       message: "Item deleted successfully",
       deletedItem: item,
     });
+    return null;
   } catch (err) {
     if (err.name === "CastError") {
       return next(new BadRequestError("Invalid item ID"));
@@ -64,7 +66,7 @@ module.exports.deleteItem = async (req, res, next) => {
     if (err.name === "DocumentNotFoundError") {
       return next(new NotFoundError("Item not found"));
     }
-    next(err);
+    return next(err);
   }
 };
 
