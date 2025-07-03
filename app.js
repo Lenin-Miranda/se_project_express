@@ -2,9 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const { errors } = require("celebrate");
-
-// Variables o constantes globales
-const { NOT_FOUND } = require("./utils/errors");
 const { NotFoundError } = require("./utils/NotFoundError");
 
 // App e imports locales
