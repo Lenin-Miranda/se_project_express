@@ -1,6 +1,11 @@
 # WTWR (What to Wear?): Back End
 
-The back-end project is focused on creating a server for the WTWR application. This server provides functionality for managing users, clothing items, and likes. The goal is to create a secure and scalable API with proper authorization and data validation. Through this project, you’ll gain a deeper understanding of working with MongoDB, Express.js, middleware, error handling, and deployment.
+## Dominios de la Aplicación
+
+- **Backend:** https://api.wtwrle.ignorelist.com
+- **Frontend:** (https://www.wtwrle.ignorelist.com)
+
+The back-end project is focused on creating a server for the WTWR application. This server provides functionality for managing users, clothing items, and likes. The goal is to create a secure and scalable API with proper authorization and data validation. Through this project, you'll gain a deeper understanding of working with MongoDB, Express.js, middleware, error handling, and deployment.
 
 ## Features
 

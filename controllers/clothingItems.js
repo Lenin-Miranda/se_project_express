@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const clothingItems = require("../models/clothingItem");
-
-const { BadRequestError } = require("../utils/errors");
+const { BadRequestError } = require("../utils/BadRequestError");
 const { NotFoundError } = require("../utils/NotFoundError");
 const { ForbiddenError } = require("../utils/ForbiddenError");
 

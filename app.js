@@ -5,6 +5,7 @@ const { errors } = require("celebrate");
 
 // Variables o constantes globales
 const { NOT_FOUND } = require("./utils/errors");
+const { NotFoundError } = require("./utils/NotFoundError");
 
 // App e imports locales
 const app = express();
@@ -14,6 +15,7 @@ const itemsRouter = require("./routes/clothingItems");
 const { createUser, login } = require("./controllers/users");
 const errorHandler = require("./middleware/error-handler");
 const { requestLogger, errorLogger } = require("./middleware/logger");
+const { validateUserBody, validateLogin } = require("./middleware/validation");
 
 // Configuración de CORS
 const corsOptions = {
@@ -31,6 +33,9 @@ const corsOptions = {
 app.use(express.json());
 app.use(cors(corsOptions));
 
+// Logger antes de cualquier ruta
+app.use(requestLogger);
+
 // Ruta de prueba de crash del servidor
 app.get("/crash-test", () => {
   setTimeout(() => {
@@ -41,19 +46,17 @@ app.get("/crash-test", () => {
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 
 // Rutas públicas SIN auth
-app.post("/signup", createUser);
-app.post("/signin", login);
+app.post("/signup", validateUserBody, createUser);
+app.post("/signin", validateLogin, login);
 
 // Rutas protegidas
 app.use("/users", usersRouter);
 app.use("/items", itemsRouter);
 
 // Ruta para recursos inexistentes
-app.use((req, res) => {
-  res.status(NOT_FOUND).send({ message: "Requested resource not found" });
+app.use((req, res, next) => {
+  next(new NotFoundError("Requested resource not found"));
 });
-
-app.use(requestLogger);
 
 app.use(errorLogger);
 // Middleware de errores de celebrate
