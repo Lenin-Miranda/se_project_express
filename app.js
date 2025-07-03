@@ -16,28 +16,27 @@ const { errors } = require("celebrate");
 const { requestLogger, errorLogger } = require("./middleware/logger");
 
 // Configuración de CORS
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "https://wtwrle.ignorelist.com",
-  "https://www.wtwrle.ignorelist.com",
-];
-
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://wtwrle.ignorelist.com",
+    "https://www.wtwrle.ignorelist.com",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 };
-app.use(cors(corsOptions));
 
 app.use(express.json());
+app.use(cors(corsOptions));
+
+// Ruta de prueba de crash del servidor
+app.get("/crash-test", () => {
+  setTimeout(() => {
+    throw new Error("Server will crash now");
+  }, 0);
+});
 
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 
